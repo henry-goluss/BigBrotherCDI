@@ -3,39 +3,39 @@ import numpy as np
 import pyzbar.pyzbar as pyzbar
 from datetime import datetime
 import winsound
-frequency = 1500  # Set Frequency To 2500 Hertz
-duration = 250  # Set Duration To 1000 ms == 1 second
+frequency = 1500  # Set Sound Frequency To 2500 Hertz
+duration = 250  # Set Sound Duration To 1000 ms == 1 second
 winsound.Beep(frequency, duration)
 frequency = 2500  # Set Frequency To 2500 Hertz
 
+#Lance la capture video
 cap = cv2.VideoCapture(0)
 font = cv2.FONT_HERSHEY_PLAIN
+
 oldData = ""
 while True:
     _, frame = cap.read()
     cv2.imshow("Frame", frame)
+    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    #Récupération des QRcodes de l'image dans decodedObjects
     decodedObjects = pyzbar.decode(frame)
 
+    #Parcours des QRcodes récupérés
     for obj in decodedObjects:
         Data = obj.data
+        #Vérification que l'on ne traite pas 2 fois le même objet
         if Data != oldData:
             oldData = Data
             winsound.Beep(frequency, duration)
-            #print("Data", obj.data)
+
             cv2.putText(frame, str(obj.data), (50, 50), font, 2,
                         (255, 0, 0), 3)
+
             now = datetime.now()
             dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-            print("date and time =", dt_string)
             print("Data + date and time =", obj.data, dt_string)
-
-            your_data1 = {obj.data, dt_string}
-            print(your_data1,  file=open('C:\log.txt', 'a'))
-
-
-
-
-
+    
+    #Capture d'un appui de touche sur le clavier
     key = cv2.waitKey(1)
     if key == 27:    # 27 code ascci touche "echap"
         cap.release()
