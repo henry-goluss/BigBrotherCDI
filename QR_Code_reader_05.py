@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 import pyzbar.pyzbar as pyzbar
 from datetime import datetime
+import time
 import winsound
-frequency = 1500  # Set Sound Frequency To 2500 Hertz
+
+frequency = 1500  # Set Sound Frequency To 1500 Hertz
 duration = 250  # Set Sound Duration To 1000 ms == 1 second
 winsound.Beep(frequency, duration)
-frequency = 2500  # Set Frequency To 2500 Hertz
 
 #Lance la capture video
 cap = cv2.VideoCapture(0)
@@ -14,6 +15,10 @@ font = cv2.FONT_HERSHEY_PLAIN
 
 oldData = ""
 while True:
+
+    #Pour éviter trop de charge CPU
+    time.sleep(0.5)
+    
     _, frame = cap.read()
     cv2.imshow("Frame", frame)
     print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
