@@ -17,11 +17,12 @@ oldData = ""
 while True:
 
     #Pour éviter trop de charge CPU
-    time.sleep(0.5)
+    time.sleep(0.1)
     
+    #Capture et affichage de l'image
     _, frame = cap.read()
     cv2.imshow("Frame", frame)
-    print(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+
     #Récupération des QRcodes de l'image dans decodedObjects
     decodedObjects = pyzbar.decode(frame)
 
@@ -32,12 +33,13 @@ while True:
         if Data != oldData:
             oldData = Data
             winsound.Beep(frequency, duration)
-
+            #Pour afficher un texte sur l'image mais ne semble pas fonctionner.
             cv2.putText(frame, str(obj.data), (50, 50), font, 2,
                         (255, 0, 0), 3)
 
             now = datetime.now()
             dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+            #Affichage du numéro contenu dans le QRcode et de la date en console
             print("Data + date and time =", obj.data, dt_string)
     
     #Capture d'un appui de touche sur le clavier
