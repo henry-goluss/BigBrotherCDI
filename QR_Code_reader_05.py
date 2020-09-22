@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import winsound
 
-frequency = 1500  # Set Sound Frequency To 1500 Hertz
+frequency = 1600  # Set Sound Frequency To 1500 Hertz
 duration = 250  # Set Sound Duration To 1000 ms == 1 second
 winsound.Beep(frequency, duration)
 
