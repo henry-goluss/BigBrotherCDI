@@ -3,11 +3,13 @@ import numpy as np
 import pyzbar.pyzbar as pyzbar
 from datetime import datetime
 import time
-import winsound
+from pydub import AudioSegment
+from pydub.playback import play
 
-frequency = 1600  # Set Sound Frequency To 1500 Hertz
-duration = 250  # Set Sound Duration To 1000 ms == 1 second
-winsound.Beep(frequency, duration)
+
+# load the beep into pydub
+beep = AudioSegment.from_file("beep.wav")
+play(beep)
 
 #Lance la capture video
 cap = cv2.VideoCapture(0)
@@ -32,7 +34,8 @@ while True:
         #Vérification que l'on ne traite pas 2 fois le même objet
         if Data != oldData:
             oldData = Data
-            winsound.Beep(frequency, duration)
+            
+            play(beep)
             #Pour afficher un texte sur l'image mais ne semble pas fonctionner.
             cv2.putText(frame, str(obj.data), (50, 50), font, 2,
                         (255, 0, 0), 3)
@@ -53,5 +56,6 @@ while True:
 
 # conda install opencv
 # pip install pyzbar
+# pip install pydub
 
 # https://www.sqlshack.com/python-scripts-to-format-data-in-microsoft-excel/
