@@ -6,9 +6,9 @@ import time
 from pydub import AudioSegment
 from pydub.playback import play
 
+
 # load the beep into pydub
 beep = AudioSegment.from_file("beep.wav")
-
 play(beep)
 
 #Lance la capture video
