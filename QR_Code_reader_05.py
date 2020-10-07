@@ -1,50 +1,63 @@
 import cv2
 import numpy as np
 import pyzbar.pyzbar as pyzbar
-from datetime import datetime
+import datetime
 import time
 from pydub import AudioSegment
 from pydub.playback import play
 
 
-# load the beep into pydub
-beep = AudioSegment.from_file("beep.wav")
-play(beep)
 
-#Lance la capture video
-cap = cv2.VideoCapture(0)
-font = cv2.FONT_HERSHEY_PLAIN
+def purge_alreadyScanned(alreadyScanned):
+    return alreadyScanned
 
-oldData = ""
+def capture_qrcode():
+    return [
+        pyzbar.Decoded(
+            data=b'Foramenifera', type='CODE128',
+            rect=None,
+            polygon=None
+            
+        )
+    ]
+
+def add_to_db(id_e,timestamp,database):
+    print(id,timestamp)
+
+def show_warning(status):
+    pass
+
+alreadyScanned=dict()
+
 while True:
 
     #Pour éviter trop de charge CPU
     time.sleep(0.1)
     
-    #Capture et affichage de l'image
-    _, frame = cap.read()
-    cv2.imshow("Frame", frame)
+    #On enlève les codes élèves déja scannés il y a plus de 5min
+    alreadyScanned=purge_alreadyScanned(alreadyScanned)
 
-    #Récupération des QRcodes de l'image dans decodedObjects
-    decodedObjects = pyzbar.decode(frame)
+    #Affichage de l'image et récupération des codes
+    decodedObjects=capture_qrcode()
 
+    #Récupération de l'heure du scan
+    scan_time = datetime.datetime.now()
+    print("ok")
     #Parcours des QRcodes récupérés
     for obj in decodedObjects:
-        Data = obj.data
+        id_eleve = obj.data
         #Vérification que l'on ne traite pas 2 fois le même objet
-        if Data != oldData:
-            oldData = Data
+        if id_eleve not in alreadyScanned:
+            #Ajout de l'id eleve dans AlreadyScanned afin qu'il ne soit pas scanné plusieurs fois de suite
+            alreadyScanned[id_eleve]=scan_time+datetime.timedelta(minutes=5)
             
-            play(beep)
-            #Pour afficher un texte sur l'image mais ne semble pas fonctionner.
-            cv2.putText(frame, str(obj.data), (50, 50), font, 2,
-                        (255, 0, 0), 3)
+            #MAJ de la BDD
+            add_to_db(id_eleve, alreadyScanned[id_eleve],"passages_CDI.db")
 
-            now = datetime.now()
-            dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-            #Affichage du numéro contenu dans le QRcode et de la date en console
-            print("Data + date and time =", obj.data, dt_string)
-    
+            show_warning('ok')
+        else :
+            show_warning('nok')
+            
     #Capture d'un appui de touche sur le clavier
     key = cv2.waitKey(1)
     if key == 27:    # 27 code ascci touche "echap"
