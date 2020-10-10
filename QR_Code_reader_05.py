@@ -7,10 +7,7 @@ from pydub.playback import play
 
 from db.db import DBConnection
 
-# Connection to database
-DB = DBConnection()
-# Video Capture
-cap = cv2.VideoCapture(0)
+
 
 def purge_alreadyScanned(alreadyScanned):
     """
@@ -61,6 +58,13 @@ def add_to_db(id_e,timestamp):
 
 def show_warning(status):
     pass
+
+
+
+# Connection to database
+DB = DBConnection()
+# Start Video Capture
+cap = cv2.VideoCapture(0)
 
 alreadyScanned=dict() 
 
