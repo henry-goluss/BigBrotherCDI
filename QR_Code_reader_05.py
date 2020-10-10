@@ -8,68 +8,19 @@ from pydub.playback import play
 import sqlite3
 import os
 
-"""
-    DATABASE CONNECTION
-"""
-db_file = "db/passages_CDI.db"
-sql_file = "db/passages_CDI.sql"
-sql_init_file = "db/passages_CDI-init.sql"
+from db.db import DBConnection
 
-def db_connect():
-    need_dump = False
-    if not os.path.exists(db_file):
-        need_dump = True
-
-    try:
-        conn = sqlite3.connect(db_file)
-		# Activate foreign keys
-        conn.execute("PRAGMA foreign_keys = 1")
-        
-        if need_dump:
-            sql_file_to_use = sql_init_file
-
-            if os.path.exists(sql_file):
-                sql_file_to_use = sql_file
-
-            createFile = open(sql_file_to_use, 'r')
-            createSql = createFile.read()
-            createFile.close()
-            sqlQueries = createSql.split(";")
-
-            cursor = conn.cursor()
-            for query in sqlQueries:
-                cursor.execute(query)
-
-            conn.commit()
-
-        return conn
-    except sqlite3.Error as e:
-        print("db : " + str(e))
-
-    return None
-
-def db_dump(db_conn):
-    with open(sql_file, 'w') as f:
-        for line in db_conn.iterdump():
-            f.write('%s\n' % line)
-db_conn = db_connect()
-
-"""
-    END DATABASE CONNECTION
-"""
+# Connection to database
+DB = DBConnection()
 
 """
     PARTIE PURGE
 """
-
-
 def purge_alreadyScanned(alreadyScanned):
     for key in list(alreadyScanned.keys()):
         if alreadyScanned[key]<=datetime.datetime.now(): 
             del alreadyScanned[key]
     return alreadyScanned
-
-
 """
     FIN PARTIE PURGE
 """
@@ -88,15 +39,13 @@ def capture_qrcode():
 """
     FIN PARTIE QR CODE
 """
-    
-
 
 def add_to_db(id_e,timestamp):
-    cur = db_conn.cursor()
+    cur = DB.conn.cursor()
     cur.execute("INSERT INTO Passages (id_eleve, passage_time) VALUES (?, ?)", (id_e, timestamp))
-    db_conn.commit()
+    DB.conn.commit()
 
-    db_dump(db_conn)
+    DB.dump()
 
 def show_warning(status):
     pass
