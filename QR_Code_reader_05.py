@@ -12,35 +12,49 @@ from db.db import DBConnection
 
 # Connection to database
 DB = DBConnection()
+# Video Capture
+cap = cv2.VideoCapture(0)
 
-"""
-    PARTIE PURGE
-"""
 def purge_alreadyScanned(alreadyScanned):
+    """
+        Takes a dictionary as a parameter whose values are 
+        timestamps and removes from this dictionary all 
+        entries whose timestamp is less than the current timestamp.
+        -----
+        Prend un dictionnaire en paramètre dont les valeurs sont
+        des timestamps et supprime de ce dictionnaire toutes les 
+        entrées dont le timestamp est inférieur au timestamp actuel.
+    """
     for key in list(alreadyScanned.keys()):
         if alreadyScanned[key]<=datetime.datetime.now(): 
             del alreadyScanned[key]
     return alreadyScanned
-"""
-    FIN PARTIE PURGE
-"""
-
-"""
-    CAPTURE QR CODE
-"""
-#lancer la capture vidéo
-cap = cv2.VideoCapture(0)
 
 def capture_qrcode():
-    #capture et affichage de l'image
-    _, frame = cap.read()
-    cv2.imshow("Frame", frame)
-    return pyzbar.decode(frame)
-"""
-    FIN PARTIE QR CODE
-"""
+    """
+        Takes an image from "cap" and returns its qr codes
+        -----
+        Prend une image de "cap" et retourne ses qr codes
+    """
+    _, frame = cap.read() # frame capture
+    cv2.imshow("Frame", frame) # frame display
+    return pyzbar.decode(frame) # return qr codes
 
 def add_to_db(id_e,timestamp):
+    """
+        Takes in parameters a student ID, a timestamp 
+        and stores them in the database then makes a dump.
+        -----
+        Prend en paramètres un ID élève, un timestamp 
+        et les stocke dans la base de données puis fait un dump.
+    """
+
+    if not isinstance(id_e, str):
+        return
+
+    if not isinstance(timestamp, datetime.datetime):
+        return
+
     cur = DB.conn.cursor()
     cur.execute("INSERT INTO Passages (id_eleve, passage_time) VALUES (?, ?)", (id_e, timestamp))
     DB.conn.commit()
