@@ -1,50 +1,101 @@
 import cv2
-import numpy as np
 import pyzbar.pyzbar as pyzbar
-from datetime import datetime
+import datetime
 import time
 from pydub import AudioSegment
 from pydub.playback import play
 
+from db.db import DBConnection
 
-# load the beep into pydub
-beep = AudioSegment.from_file("beep.wav")
-play(beep)
 
-#Lance la capture video
+
+def purge_alreadyScanned(alreadyScanned):
+    """
+        Takes a dictionary as a parameter whose values are 
+        timestamps and removes from this dictionary all 
+        entries whose timestamp is less than the current timestamp.
+        -----
+        Prend un dictionnaire en paramètre dont les valeurs sont
+        des timestamps et supprime de ce dictionnaire toutes les 
+        entrées dont le timestamp est inférieur au timestamp actuel.
+    """
+    for key in list(alreadyScanned.keys()):
+        if alreadyScanned[key]<=datetime.datetime.now(): 
+            del alreadyScanned[key]
+    return alreadyScanned
+
+def capture_qrcode():
+    """
+        Takes an image from "cap" and returns its qr codes
+        -----
+        Prend une image de "cap" et retourne ses qr codes
+    """
+    _, frame = cap.read() # frame capture
+    flipped_frame=cv2.flip(frame, 1)
+    cv2.imshow("Frame", flipped_frame) # frame display
+    return pyzbar.decode(frame) # return qr codes
+
+def add_to_db(id_e,timestamp):
+    """
+        Takes in parameters a student ID, a timestamp 
+        and stores them in the database then makes a dump.
+        -----
+        Prend en paramètres un ID élève, un timestamp 
+        et les stocke dans la base de données puis fait un dump.
+    """
+
+    if not isinstance(id_e, str):
+        return
+
+    if not isinstance(timestamp, datetime.datetime):
+        return
+
+    cur = DB.conn.cursor()
+    cur.execute("INSERT INTO Passages (id_eleve, passage_time) VALUES (?, ?)", (id_e, timestamp))
+    DB.conn.commit()
+
+    DB.dump()
+
+def show_warning(status):
+    pass
+
+
+
+# Connection to database
+DB = DBConnection()
+# Start Video Capture
 cap = cv2.VideoCapture(0)
-font = cv2.FONT_HERSHEY_PLAIN
 
-oldData = ""
+alreadyScanned=dict() 
+
 while True:
 
     #Pour éviter trop de charge CPU
     time.sleep(0.1)
     
-    #Capture et affichage de l'image
-    _, frame = cap.read()
-    cv2.imshow("Frame", frame)
+    #On enlève les codes élèves déja scannés il y a plus de 5min
+    alreadyScanned=purge_alreadyScanned(alreadyScanned)
 
-    #Récupération des QRcodes de l'image dans decodedObjects
-    decodedObjects = pyzbar.decode(frame)
+    #Affichage de l'image et récupération des codes
+    decodedObjects=capture_qrcode()
 
+    #Récupération de l'heure du scan
+    scan_time = datetime.datetime.now()
     #Parcours des QRcodes récupérés
     for obj in decodedObjects:
-        Data = obj.data
+        id_eleve = obj.data.decode("utf-8") 
         #Vérification que l'on ne traite pas 2 fois le même objet
-        if Data != oldData:
-            oldData = Data
+        if id_eleve not in alreadyScanned:
+            #Ajout de l'id eleve dans AlreadyScanned afin qu'il ne soit pas scanné plusieurs fois de suite
+            alreadyScanned[id_eleve]=scan_time+datetime.timedelta(minutes=5)
             
-            play(beep)
-            #Pour afficher un texte sur l'image mais ne semble pas fonctionner.
-            cv2.putText(frame, str(obj.data), (50, 50), font, 2,
-                        (255, 0, 0), 3)
+            #MAJ de la BDD
+            add_to_db(id_eleve, scan_time)
 
-            now = datetime.now()
-            dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-            #Affichage du numéro contenu dans le QRcode et de la date en console
-            print("Data + date and time =", obj.data, dt_string)
-    
+            show_warning('ok')
+        else :
+            show_warning('nok')
+            
     #Capture d'un appui de touche sur le clavier
     key = cv2.waitKey(1)
     if key == 27:    # 27 code ascci touche "echap"

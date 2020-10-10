@@ -1,1 +1,7 @@
 settings.json
+venv
+.vscode/
+__pycache__
+
+db/passages_CDI.db
+db/passages_CDI.sql
