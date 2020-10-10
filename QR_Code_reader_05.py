@@ -1,12 +1,9 @@
 import cv2
-import numpy as np
 import pyzbar.pyzbar as pyzbar
 import datetime
 import time
 from pydub import AudioSegment
 from pydub.playback import play
-import sqlite3
-import os
 
 from db.db import DBConnection
 
@@ -37,7 +34,8 @@ def capture_qrcode():
         Prend une image de "cap" et retourne ses qr codes
     """
     _, frame = cap.read() # frame capture
-    cv2.imshow("Frame", frame) # frame display
+    flipped_frame=cv2.flip(frame, 1)
+    cv2.imshow("Frame", flipped_frame) # frame display
     return pyzbar.decode(frame) # return qr codes
 
 def add_to_db(id_e,timestamp):
