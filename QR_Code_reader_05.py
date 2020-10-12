@@ -14,14 +14,14 @@ def purge_alreadyScanned(alreadyScanned):
     """
         Takes a dictionary as a parameter whose values are 
         timestamps and removes from this dictionary all 
-        entries whose timestamp is less than the current timestamp.
+        entries whose timestamp + 5mn is less than the current timestamp.
         -----
         Prend un dictionnaire en paramètre dont les valeurs sont
         des timestamps et supprime de ce dictionnaire toutes les 
-        entrées dont le timestamp est inférieur au timestamp actuel.
+        entrées dont le timestamp + 5mn est inférieur au timestamp actuel.
     """
     for key in list(alreadyScanned.keys()):
-        if alreadyScanned[key]<=datetime.datetime.now(): 
+        if alreadyScanned[key]+datetime.timedelta(minutes=5)<=datetime.datetime.now(): 
             del alreadyScanned[key]
     return alreadyScanned
 
@@ -165,14 +165,13 @@ while True:
         #Vérification que l'on ne traite pas 2 fois le même objet
         if id_eleve not in alreadyScanned:
             #Ajout de l'id eleve dans AlreadyScanned afin qu'il ne soit pas scanné plusieurs fois de suite
-            alreadyScanned[id_eleve]=scan_time+datetime.timedelta(minutes=5)
+            alreadyScanned[id_eleve]=scan_time
             
             #MAJ de la BDD
-            add_to_db(id_eleve, scan_time)
+            add_to_db(id_eleve, alreadyScanned[id_eleve])
             play(beep)
 
-        real_scan_time = alreadyScanned[id_eleve]-datetime.timedelta(minutes=5) # the time_scan without the added 5mins
-        frame = show_infos(obj, frame, real_scan_time) # update the frame with the text...
+        frame = show_infos(obj, frame, alreadyScanned[id_eleve]) # update the frame with the text...
 
     cv2.imshow("Frame", frame) # frame display
             
