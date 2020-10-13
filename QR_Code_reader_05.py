@@ -56,7 +56,7 @@ def add_to_db(id_e,timestamp):
 
     DB.dump()
 
-def show_infos(qr_code_object, frame, scan_time): 
+def add_infos(qr_code_object, frame, scan_time): 
     """
         Takes the QrCode object from pyzbar, 
         the frame and the date of the scan. 
@@ -171,7 +171,7 @@ while True:
             add_to_db(id_eleve, alreadyScanned[id_eleve])
             play(beep)
 
-        frame = show_infos(obj, frame, alreadyScanned[id_eleve]) # update the frame with the text...
+        frame = add_infos(obj, frame, alreadyScanned[id_eleve]) # update the frame with the text...
 
     cv2.imshow("Frame", frame) # frame display
             
