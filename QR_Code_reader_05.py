@@ -8,20 +8,23 @@ from pydub.playback import play
 
 from db.db import DBConnection
 
-beep = AudioSegment.from_file("beep.wav")
+BEEP = AudioSegment.from_file("beep.wav")
+ALREADY_SCANNED_TIMEOUT = 5 #temps après lequel un élève peut scanner à nouveau en minutes
+SCAN_OK_DISPLAY_TIME = 3 #temps max d'affichage du message "Scanné!" en secondes. Ensuite cela affichera "Deja scanné"
+
 
 def purge_alreadyScanned(alreadyScanned):
     """
         Takes a dictionary as a parameter whose values are 
         timestamps and removes from this dictionary all 
-        entries whose timestamp + 5mn is less than the current timestamp.
+        entries whose timestamp + ALREADY_SCANNED_TIMEOUT is less than the current timestamp.
         -----
         Prend un dictionnaire en paramètre dont les valeurs sont
         des timestamps et supprime de ce dictionnaire toutes les 
-        entrées dont le timestamp + 5mn est inférieur au timestamp actuel.
+        entrées dont le timestamp + ALREADY_SCANNED_TIMEOUT est inférieur au timestamp actuel.
     """
     for key in list(alreadyScanned.keys()):
-        if alreadyScanned[key]+datetime.timedelta(minutes=5)<=datetime.datetime.now(): 
+        if alreadyScanned[key]+datetime.timedelta(minutes=ALREADY_SCANNED_TIMEOUT)<=datetime.datetime.now(): 
             del alreadyScanned[key]
     return alreadyScanned
 
@@ -61,18 +64,18 @@ def add_infos(qr_code_object, frame, scan_time):
         Takes the QrCode object from pyzbar, 
         the frame and the date of the scan. 
         Returns the (modified) frame.
-        If the scan date has passed for less than 3 seconds,
+        If the scan date has passed for less than SCAN_OK_DISPLAY_TIME seconds,
         "Scanne!" is displayed in green. If it has been 
-        exceeded for more than 3 seconds, 
-        "Scanne il y a moins de 5 mn" is displayed in orange.
+        exceeded for more than SCAN_OK_DISPLAY_TIME seconds, 
+        "Scanne il y a moins de ALREADY_SCANNED_TIMEOUT mn" is displayed in orange.
         -----
         Prend l'objet QrCode de pyzbar, 
         la frame et la date du scan. 
         Retourne la frame (modifiée).
-        Si la date du scan est dépassée depuis moins de 3 secondes, 
+        Si la date du scan est dépassée depuis moins de SCAN_OK_DISPLAY_TIME secondes, 
         on affiche "Scanne !" en vert. Si elle est dépassée 
-        depuis plus de 3 secondes, on affiche 
-        "Scanne il y a moins de 5 mn" en orange.
+        depuis plus de SCAN_OK_DISPLAY_TIME secondes, on affiche 
+        "Scanne il y a moins de ALREADY_SCANNED_TIMEOUT mn" en orange.
     """
 
 
@@ -105,11 +108,11 @@ def add_infos(qr_code_object, frame, scan_time):
 
     # default
     color = (0, 165, 255) # orange
-    text = "Scanne il y a moins de 5 mn"
+    text = f"Scanne il y a moins de {ALREADY_SCANNED_TIMEOUT} mn"
     
     # if the scan date has passed for less than 3 seconds
     time_between_scan_and_now = (datetime.datetime.now() - scan_time).total_seconds()
-    if time_between_scan_and_now < 3:
+    if time_between_scan_and_now < SCAN_OK_DISPLAY_TIME:
         color = (0, 255, 0) # green
         text = "Scanne !"
 
@@ -151,7 +154,7 @@ while True:
     #Pour éviter trop de charge CPU
     time.sleep(0.1)
     
-    #On enlève les codes élèves déja scannés il y a plus de 5min
+    #On enlève les codes élèves déja scannés il y a plus de ALREADY_SCANNED_TIMEOUT (5min)
     alreadyScanned=purge_alreadyScanned(alreadyScanned)
 
     #Affichage de l'image et récupération des codes
@@ -169,7 +172,7 @@ while True:
             
             #MAJ de la BDD
             add_to_db(id_eleve, alreadyScanned[id_eleve])
-            play(beep)
+            #play(BEEP)
 
         frame = add_infos(obj, frame, alreadyScanned[id_eleve]) # update the frame with the text...
 
