@@ -161,7 +161,7 @@ while True:
     frame, decodedObjects=capture_qrcode()
 
     #Récupération de l'heure du scan
-    scan_time = datetime.datetime.now()
+    scan_time = datetime.datetime.now().replace(microsecond=0)
     #Parcours des QRcodes récupérés
     for obj in decodedObjects:
         id_eleve = obj.data.decode("utf-8") 
