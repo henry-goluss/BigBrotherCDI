@@ -30,4 +30,28 @@ def get_students_in_period(date_start, date_end):
 
     return students
 
-print(get_students_in_period('2020-10-11 17:45:30.664641', '2020-10-12 16:24:26.073276'))
+def get_student_in_contact_in_period(id_eleve, date_start, date_end):
+    """
+        Take the identifier of a student.
+        Take two dates (date_start and date_end) of the following form:
+            string: 'YYYY-MM-dd hh: mm: ss'
+            ex: '2020-10-12 16: 24: 26.073276'
+        These are the start and end dates of the interval.
+        Returns an array of student IDs, each ID appears only once.
+        ------
+        Prends l'identifiant d'un élève.
+        Prends deux dates (date_start et date_end) de la forme suivante :
+            string : 'YYYY-MM-dd hh:mm:ss'
+            ex : '2020-10-12 16:24:26.073276'
+        Ce sont les dates du début et de fin de l'intervalle.
+        Retourne un tableau d'identifiants d'élèves, chaque identifiant
+        n'apparaît qu'une fois.
+    """
+    students_in_period = get_students_in_period(date_start, date_end)
+
+    if id_eleve not in students_in_period:
+        return 1
+
+    students_in_period.remove(id_eleve)
+
+    return students_in_period
